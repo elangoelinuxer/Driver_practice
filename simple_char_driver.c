@@ -43,7 +43,7 @@ return 0;
 static int ela_release(struct inode *i, struct  file *f)
 {
 
-printk("releasing the driver \n");
+printk("closing the device file  \n");
 
 return 0;
 
