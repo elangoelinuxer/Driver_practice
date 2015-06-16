@@ -97,12 +97,10 @@ printk("ELA:  In exit function ... \n");
 
 cdev_del(&my_char_driver);
 
-unregister_chrdev_region(dev,3);
-
-class_destroy(class_var);
 device_destroy(class_var,dev);
+class_destroy(class_var);
 
-
+unregister_chrdev_region(dev,3);
 
 return 0;
 }
