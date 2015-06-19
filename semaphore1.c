@@ -97,11 +97,17 @@ int func(char data)
 		printk("file cannot opened ....\n");
 	}
 
-
-	printk("in critcal section of the code ---> thread_1 writing charcters & thread_2 writing numbers in to file .... %c\n",data);
+       if(data>64 && data <91)
+       {
+	printk("in critcal section of the code ---> thread_1 writing charcter --> %c  & thread_2 waiting \n\n",data);
+       }
+       else
+       { 
+	printk("in critcal section of the code ---> thread_2 writing number --> %c  & thread_1 waiting \n\n",data);
+       }
 
 	fop->f_op->write(fop,(char *)&data,1,&fop->f_pos);  //writing to the file
-	msleep(100);
+	msleep(2000);
 
 	filp_close(fop,0);
 

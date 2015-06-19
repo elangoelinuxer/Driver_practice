@@ -27,5 +27,16 @@ up function:
 up
 
 
+TODO:
+
+insmod ./semaphore.ko
+
+cat /dev/Char_dev  _to start the threads
+
+note:
+
+change the location of your file to be created 
+
+
 
 
