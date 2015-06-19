@@ -9,11 +9,25 @@
 #include<linux/device.h>
 #include<linux/kthread.h>
 #include<linux/delay.h>
+#include<linux/semaphore.h>
+#include<linux/mutex.h>
+
 
 dev_t dev;
 struct cdev my_char_driver;
 struct class *class_var;
 struct task_struct *thrd1,*thrd2;
+struct semaphore *sem_mine;
+
+
+struct file *fop;
+
+
+
+
+
+
+
 
 static int ela_open(struct inode *i, struct  file *f)
 {
@@ -27,12 +41,12 @@ static int ela_open(struct inode *i, struct  file *f)
 static int ela_read(struct file *f, char __user *ubuff, size_t len, loff_t *off)
 {
 
-	printk("reading the device file \n");
-        printk("starting the thread ....\n");
+	printk("Reading the device file \n");
 
-        wake_up_process(thrd1);          // while reading the device node , thread will start executing
+	printk("starting the thread ....\n");
+	wake_up_process(thrd1);                // while reading the device node , thread will start executing
+	wake_up_process(thrd2);                // while reading the device node , thread will start executing
 
-        wake_up_process(thrd2);          // while reading the device node , thread will start executing
 	return 0;
 
 }
@@ -40,12 +54,21 @@ static int ela_read(struct file *f, char __user *ubuff, size_t len, loff_t *off)
 static int  ela_write(struct file *f,const char __user *ubuff  ,size_t len, loff_t *off)
 {
 
-	printk("writing the device file \n");
-        printk("stoping the thread ....\n");
-      
-//      kthread_stop(thrd1);
+	int val=2;
 
- //     kthread_stop(thrd2);
+
+	while(val>0)
+	{
+
+
+		printk("writing the device file %c\n",*ubuff);
+		--val;
+		msleep(600);
+
+
+	}
+
+
 	return len;
 
 }
@@ -74,25 +97,33 @@ static const struct file_operations fopz=
 void my_thread_1(int data)
 {
 
-int n=0;
+	int n=0;
+
+char ac='a';
+
+
+
+	while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
+	{
+
+
+              if(n<20)
+		{
+                fop->f_op->write(fop,(char *)&ac,1,&fop->f_pos);  //writing to the file
+		}
+
+
+		printk("In thread_1  function ....%d\n",n);
+		n++;
+		msleep(400);
+
+	}
 
 
 
 
-while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
-{
 
-
-printk("In thread_1  function ....%d\n",n);
-n++;
-
-msleep(400);
-
-
-}
-
-
-//do_exit(1);
+	//do_exit(1);
 
 
 }
@@ -101,25 +132,32 @@ msleep(400);
 void my_thread_2(int data)
 {
 
-int n=0;
+	int n=0;
+
+
+char ac='b';
+
+
+	while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
+	{
+
+              if(n<20)
+		{
+                fop->f_op->write(fop,(char *)&ac,1,&fop->f_pos);  //writing to the file
+		}
+
+
+		printk("In thread_2 function ....%d\n",n);
+		n++;
+
+		msleep(400);
+
+
+	}
 
 
 
-
-while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
-{
-
-
-printk("In thread_2 function ....%d\n",n);
-n++;
-
-msleep(400);
-
-
-}
-
-
-//do_exit(1);
+	//do_exit(1);
 
 
 }
@@ -137,7 +175,21 @@ static int ela_init(void)
 
 	int data=77;
 
+
+
+fop=filp_open("/tmp/ela.txt",O_WRONLY|O_CREAT,0777);
+if(fop>=0)
+{
+printk("file created sucessfully ....\n");
+}
+
+
+
+
+
 	ret_val=alloc_chrdev_region(&dev,7,3,"Char_dvr");
+
+	sema_init(&sem_mine,4);
 
 	if(ret_val<0)
 	{
@@ -152,8 +204,8 @@ static int ela_init(void)
 
 	device_create(class_var,NULL,dev,NULL,"Char_dvr");
 
-        thrd1=kthread_create(&my_thread_1,data,"Elango_thread_1");        //thread will be created but it wont be executed (note: use thread_run for                                                                         both creating and run in single call)
-        thrd2=kthread_create(&my_thread_2,data,"Elango_thread_2");        //thread will be created but it wont be executed (note: use thread_run for                                                                         both creating and run in single call)
+	thrd1=kthread_create(&my_thread_1,data,"Elango_thread_1");        //thread will be created but it wont be executed (note: use thread_run for                                                                         both creating and run in single call)
+	thrd2=kthread_create(&my_thread_2,data,"Elango_thread_2");        //thread will be created but it wont be executed (note: use thread_run for                                                                         both creating and run in single call)
 
 	return 0;
 }
@@ -161,13 +213,17 @@ static int ela_init(void)
 static int ela_exit(void)
 {
 
+
+filp_close(fop,0);
+
+
 	printk("ELA:  In exit function ... \n");
 
-         kthread_stop(thrd1);
+	kthread_stop(thrd1);   //stoping the running thread1
 
-         kthread_stop(thrd2);
+	kthread_stop(thrd2);   //stoping the running thread2
 
- 	cdev_del(&my_char_driver);
+	cdev_del(&my_char_driver);
 
 	device_destroy(class_var,dev);
 	class_destroy(class_var);
