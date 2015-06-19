@@ -17,17 +17,10 @@ dev_t dev;
 struct cdev my_char_driver;
 struct class *class_var;
 struct task_struct *thrd1,*thrd2;
-struct semaphore *sem_mine;
+struct semaphore sem_mine;
 
 
 struct file *fop;
-
-
-
-
-
-
-
 
 static int ela_open(struct inode *i, struct  file *f)
 {
@@ -93,8 +86,43 @@ static const struct file_operations fopz=
 };
 
 
+int func(char data)
+{
 
-void my_thread_1(int data)
+int n=0;
+
+down_interruptible(&sem_mine);
+
+
+fop=filp_open("/home/elango/ela.txt",O_WRONLY|O_CREAT|O_APPEND,0777);
+
+if(fop<0)
+{
+printk("file cannot opened ....\n");
+}
+
+
+
+
+printk("in critcal section of the code .... %c\n",data);
+
+
+                fop->f_op->write(fop,(char *)&data,1,&fop->f_pos);  //writing to the file
+                msleep(1000);
+      
+
+filp_close(fop,0);
+
+up(&sem_mine);
+
+
+
+
+return 0;
+
+}
+
+int my_thread_1(int data)
 {
 
 	int n=0;
@@ -107,29 +135,20 @@ char ac='a';
 	{
 
 
-              if(n<20)
-		{
-                fop->f_op->write(fop,(char *)&ac,1,&fop->f_pos);  //writing to the file
-		}
 
-
-		printk("In thread_1  function ....%d\n",n);
-		n++;
-		msleep(400);
+                func(ac);       
+    
 
 	}
 
 
-
-
-
-	//do_exit(1);
+	do_exit(1);
 
 
 }
 
 
-void my_thread_2(int data)
+int my_thread_2(int data)
 {
 
 	int n=0;
@@ -141,23 +160,14 @@ char ac='b';
 	while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
 	{
 
-              if(n<20)
-		{
-                fop->f_op->write(fop,(char *)&ac,1,&fop->f_pos);  //writing to the file
-		}
 
-
-		printk("In thread_2 function ....%d\n",n);
-		n++;
-
-		msleep(400);
-
+                func(ac);       
 
 	}
 
 
 
-	//do_exit(1);
+	do_exit(1);
 
 
 }
@@ -177,25 +187,21 @@ static int ela_init(void)
 
 
 
-fop=filp_open("/tmp/ela.txt",O_WRONLY|O_CREAT,0777);
-if(fop>=0)
-{
-printk("file created sucessfully ....\n");
-}
+sema_init(&sem_mine,1);
 
-
+//init_MUTEX(&sem_mine);
 
 
 
 	ret_val=alloc_chrdev_region(&dev,7,3,"Char_dvr");
 
-	sema_init(&sem_mine,4);
 
 	if(ret_val<0)
 	{
 
 		printk("error in allocating character driver..\n");
 	}
+
 
 	cdev_init(&my_char_driver,&fopz);
 	cdev_add(&my_char_driver,dev,3);
@@ -214,7 +220,6 @@ static int ela_exit(void)
 {
 
 
-filp_close(fop,0);
 
 
 	printk("ELA:  In exit function ... \n");
