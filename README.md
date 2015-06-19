@@ -1,5 +1,5 @@
 # Driver_practice
 Just basic concepts of drivers for fresh up
 
---> checkout branches
+--> checkout branches for different concepts
 
