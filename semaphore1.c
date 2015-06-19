@@ -26,7 +26,6 @@ static int ela_open(struct inode *i, struct  file *f)
 {
 
 	printk("opened the device file \n");
-
 	return 0;
 
 }
@@ -36,7 +35,7 @@ static int ela_read(struct file *f, char __user *ubuff, size_t len, loff_t *off)
 
 	printk("Reading the device file \n");
 
-	printk("starting the thread ....\n");
+	printk("starting the threads....\n");
 	wake_up_process(thrd1);                // while reading the device node , thread will start executing
 	wake_up_process(thrd2);                // while reading the device node , thread will start executing
 
@@ -70,7 +69,6 @@ static int ela_release(struct inode *i, struct  file *f)
 {
 
 	printk("closing the device file  \n");
-
 	return 0;
 
 }
@@ -89,36 +87,28 @@ static const struct file_operations fopz=
 int func(char data)
 {
 
-int n=0;
 
-down_interruptible(&sem_mine);
+	down_interruptible(&sem_mine);   //locking the shared resource 
 
+	fop=filp_open("/home/elango/ela.txt",O_WRONLY|O_CREAT|O_APPEND,0777);
 
-fop=filp_open("/home/elango/ela.txt",O_WRONLY|O_CREAT|O_APPEND,0777);
-
-if(fop<0)
-{
-printk("file cannot opened ....\n");
-}
+	if(fop<0)
+	{
+		printk("file cannot opened ....\n");
+	}
 
 
+	printk("in critcal section of the code ---> thread_1 writing charcters & thread_2 writing numbers in to file .... %c\n",data);
+
+	fop->f_op->write(fop,(char *)&data,1,&fop->f_pos);  //writing to the file
+	msleep(100);
+
+	filp_close(fop,0);
+
+	up(&sem_mine);        //releasing the shared resource
 
 
-printk("in critcal section of the code .... %c\n",data);
-
-
-                fop->f_op->write(fop,(char *)&data,1,&fop->f_pos);  //writing to the file
-                msleep(1000);
-      
-
-filp_close(fop,0);
-
-up(&sem_mine);
-
-
-
-
-return 0;
+	return 0;
 
 }
 
@@ -126,23 +116,27 @@ int my_thread_1(int data)
 {
 
 	int n=0;
-
-char ac='a';
-
-
+	char ac=65;
 
 	while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
 	{
 
 
+		if(ac<91)
+		{ 
+			func(ac);       
+			ac++; 
+		}
+		else
+		{
+			ac=65;
+		}
 
-                func(ac);       
-    
 
 	}
 
 
-	do_exit(1);
+	do_exit(1);  //exiting the thread properly
 
 
 }
@@ -154,14 +148,21 @@ int my_thread_2(int data)
 	int n=0;
 
 
-char ac='b';
+	char ac=48;
 
 
 	while(!kthread_should_stop())  // once stsrted this will execute untill  this kthread_should stop reurns 1 ie) while kthread_stop is executed
 	{
 
-
-                func(ac);       
+		if(ac<58)
+		{ 
+			func(ac);       
+			ac++; 
+		}
+		else
+		{
+			ac=48;
+		}
 
 	}
 
@@ -186,11 +187,7 @@ static int ela_init(void)
 	int data=77;
 
 
-
-sema_init(&sem_mine,1);
-
-//init_MUTEX(&sem_mine);
-
+	sema_init(&sem_mine,1);
 
 
 	ret_val=alloc_chrdev_region(&dev,7,3,"Char_dvr");
@@ -220,8 +217,6 @@ static int ela_exit(void)
 {
 
 
-
-
 	printk("ELA:  In exit function ... \n");
 
 	kthread_stop(thrd1);   //stoping the running thread1
@@ -237,7 +232,6 @@ static int ela_exit(void)
 
 	return 0;
 }
-
 
 module_init(ela_init);
 module_exit(ela_exit);
