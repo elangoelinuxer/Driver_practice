@@ -18,7 +18,7 @@ struct cdev my_char_driver;
 struct class *class_var;
 struct task_struct *thrd1,*thrd2;
 struct semaphore sem_mine;
-
+static DEFINE_MUTEX(ela_mutex);
 
 struct file *fop;
 
@@ -88,8 +88,8 @@ int func(char data)
 {
 
 
-	down_interruptible(&sem_mine);   //locking the shared resource 
-
+//	down_interruptible(&sem_mine);   //locking the shared resource 
+mutex_trylock(&ela_mutex);
 	fop=filp_open("/home/elango/ela.txt",O_WRONLY|O_CREAT|O_APPEND,0777);
 
 	if(fop<0)
@@ -110,8 +110,8 @@ int func(char data)
 	msleep(2000);
 
 	filp_close(fop,0);
-
-	up(&sem_mine);        //releasing the shared resource
+mutex_unlock(&ela_mutex);
+//	up(&sem_mine);        //releasing the shared resource
 
 
 	return 0;
@@ -193,7 +193,7 @@ static int ela_init(void)
 	int data=77;
 
 
-	sema_init(&sem_mine,1);
+//	sema_init(&sem_mine,1);
 
 
 	ret_val=alloc_chrdev_region(&dev,7,3,"Char_dvr");
