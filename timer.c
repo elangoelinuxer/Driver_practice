@@ -8,9 +8,11 @@
 #include<linux/fs.h>
 #include<linux/device.h>
 
+#include<linux/timer.h>
 
 dev_t dev;
 struct cdev my_char_driver;
+static struct timer_list ela_timer;
 
 
 static int ela_open(struct inode *i, struct  file *f)
@@ -64,6 +66,22 @@ static struct file_operations fopz=
 
 struct class *class_var;
 
+
+void timer_fn(unsigned long time_data)
+{
+
+
+printk("in timer function ...\n");
+
+mod_timer(&ela_timer,jiffies+msecs_to_jiffies(1000));
+
+
+}
+
+
+
+
+
 static int ela_init(void)
 {
 
@@ -86,12 +104,24 @@ device_create(class_var,NULL,dev,NULL,"Char_dvr");
 
 
 printk("ELA:  In init function ... \n");
+//-------------
+
+setup_timer(&ela_timer,timer_fn,0);
+
+
+mod_timer(&ela_timer,jiffies+msecs_to_jiffies(200));
+
+
+
 
 return 0;
 }
 
 static int ela_exit(void)
 {
+
+
+del_timer(&ela_timer);
 
 printk("ELA:  In exit function ... \n");
 
