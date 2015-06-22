@@ -8,11 +8,10 @@
 #include<linux/fs.h>
 #include<linux/device.h>
 
+#include<linux/interrupt.h>
 
 dev_t dev;
 struct cdev my_char_driver;
-
-struct delayed_work ela_work;
 
 
 static int ela_open(struct inode *i, struct  file *f)
@@ -66,13 +65,15 @@ static struct file_operations fopz=
 
 struct class *class_var;
 
-static void work_fn(struct work_struct *work)
+static irq_handler_t my_isr(int num,void *dev_iddd,struct pt_regs *regzz)
 {
 
-printk("in workqueue fn ...\n");
+printk("Keyboard interrupt received ...\n");
 
-schedule_delayed_work(&ela_work,1500);
+return (irq_handler_t) IRQ_HANDLED;
+
 }
+
 
 
 static int ela_init(void)
@@ -95,13 +96,12 @@ class_var=class_create(THIS_MODULE,"Char_dvr");
 
 device_create(class_var,NULL,dev,NULL,"Char_dvr");
 
+
 printk("ELA:  In init function ... \n");
 
-///---------
+//---------
 
-INIT_DELAYED_WORK_DEFERRABLE(&ela_work,work_fn);
-
-schedule_delayed_work(&ela_work,1500);
+request_irq(1,(irq_handler_t)my_isr,IRQF_SHARED,"keyboard_irq",(void*)(my_isr));
 
 
 
@@ -111,7 +111,8 @@ return 0;
 static int ela_exit(void)
 {
 
-cancel_delayed_work(&ela_work);
+
+free_irq(1,(void *)(my_isr));
 
 printk("ELA:  In exit function ... \n");
 
