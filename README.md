@@ -1,5 +1,3 @@
-# Driver_practice
-Just basic concepts of drivers for fresh up
+mutex will make the waiting thread to sleep while the spin lock will make the waiting thread to spin
 
---> checkout branches for different concepts
 
