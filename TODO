@@ -75,20 +75,19 @@
 
 
 
-*Debugfs
 *export
-*timer
 *jprobe
 *kprobe
 *misc
 *procfs
 *sysfs
+*Debugfs
 *ioctl
 *Dynamic memory allocation
-*copytouser/copyfromuser
-*container_of
+*copytouser/copyfromuser/container_of
 *i2c_driver -bbb
 *spi driver -bbb
+*UART driver -bbb
 
 
 
