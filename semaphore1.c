@@ -88,6 +88,7 @@ int func(char data)
 {
 
 
+
 	down_interruptible(&sem_mine);   //locking the shared resource 
 
 	fop=filp_open("/home/elango/ela.txt",O_WRONLY|O_CREAT|O_APPEND,0777);
