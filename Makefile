@@ -1,4 +1,4 @@
-obj-m +=interrupt.o
+obj-m +=switch_interrupt.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build  M=$(PWD) modules
