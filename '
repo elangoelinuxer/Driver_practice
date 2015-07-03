@@ -36,21 +36,15 @@ MODULE_LICENSE("GPL");
 static struct timer_list *timer;
 static void tiny_stop_tx(struct uart_port *port)
 {
-
-printk("%s\n",__func__);
-
 }
 static void tiny_stop_rx(struct uart_port *port)
 {
-printk("%s\n",__func__);
 }
 static void tiny_enable_ms(struct uart_port *port)
 {
-printk("%s\n",__func__);
 }
 static void tiny_tx_chars(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	struct circ_buf *xmit = &port->state->xmit;
 	int count;
 	if (port->x_char) {
@@ -78,11 +72,9 @@ printk("%s\n",__func__);
 }
 static void tiny_start_tx(struct uart_port *port)
 {
-printk("%s\n",__func__);
 }
 static void tiny_timer(unsigned long data)
 {
-printk("%s\n",__func__);
 	struct uart_port *port;
 	struct tty_struct *tty;
 	struct tty_port *tty_port;
@@ -107,26 +99,21 @@ printk("%s\n",__func__);
 }
 static unsigned int tiny_tx_empty(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	return 0;
 }
 static unsigned int tiny_get_mctrl(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	return 0;
 }
 static void tiny_set_mctrl(struct uart_port *port, unsigned int mctrl)
 {
-printk("%s\n",__func__);
 }
 static void tiny_break_ctl(struct uart_port *port, int break_state)
 {
-printk("%s\n",__func__);
 }
 static void tiny_set_termios(struct uart_port *port,
 		struct ktermios *new, struct ktermios *old)
 {
-printk("%s\n",__func__);
 	int baud, quot, cflag = new->c_cflag;
 	/* get the byte size */
 	switch (cflag & CSIZE) {
@@ -169,7 +156,6 @@ printk("%s\n",__func__);
 }
 static int tiny_startup(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	/* this is the first time this port is opened */
 	/* do any hardware initialization needed here */
 	/* create our timer and submit it */
@@ -186,7 +172,6 @@ printk("%s\n",__func__);
 }
 static void tiny_shutdown(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	/* The port is being closed by the last user. */
 	/* Do any hardware specific stuff here */
 	/* shut down our timer */
@@ -194,25 +179,20 @@ printk("%s\n",__func__);
 }
 static const char *tiny_type(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	return "tinytty";
 }
 static void tiny_release_port(struct uart_port *port)
 {
-printk("%s\n",__func__);
 }
 static int tiny_request_port(struct uart_port *port)
 {
-printk("%s\n",__func__);
 	return 0;
 }
 static void tiny_config_port(struct uart_port *port, int flags)
 {
-printk("%s\n",__func__);
 }
 static int tiny_verify_port(struct uart_port *port, struct serial_struct *ser)
 {
-printk("%s\n",__func__);
 	return 0;
 }
 static struct uart_ops tiny_ops = {
@@ -261,9 +241,11 @@ static int __init tiny_init(void)
 static void __exit tiny_exit(void)
 {
 
-	printk(KERN_INFO "Tiny serial driver unloaded\n");
-	uart_remove_one_port(&tiny_reg,&tiny_port);
-	uart_unregister_driver(&tiny_reg);
+
+uart_remove_one_port(&tiny_reg,tiny_port);
+uart_unregister_driver(&tiny_reg);
+
+
 
 }
 module_init(tiny_init);
