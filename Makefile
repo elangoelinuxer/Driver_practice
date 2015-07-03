@@ -1,4 +1,4 @@
-obj-m +=spinlock.o
+obj-m +=virtual_uart.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build  M=$(PWD) modules
