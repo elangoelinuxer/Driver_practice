@@ -69,21 +69,19 @@ static int ela_init(void)
 
 int ret_val;
 
-ret_val=alloc_chrdev_region(&dev,7,3,"Char_dvr");
+ret_val=alloc_chrdev_region(&dev,7,3,"Char_dvr");   //dynamic allocation of major number
 
 if(ret_val<0)
 {
-
 printk("error in allocating character driver..\n");
 }
 
-cdev_init(&my_char_driver,&fopz);
-cdev_add(&my_char_driver,dev,3);
+cdev_init(&my_char_driver,&fopz);          //connect file operations with cdev
+cdev_add(&my_char_driver,dev,3);           //connect major&minor number with cdev
 
-class_var=class_create(THIS_MODULE,"Char_dvr");
+class_var=class_create(THIS_MODULE,"Char_dvr");   //populate sysfs entries
 
-device_create(class_var,NULL,dev,NULL,"Char_dvr");
-
+device_create(class_var,NULL,dev,NULL,"Char_dvr");          //send uevents to udev  //   dev/char_dvr will be created
 
 printk("ELA:  In init function ... \n");
 
